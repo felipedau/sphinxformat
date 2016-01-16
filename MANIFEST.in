@@ -1,0 +1,5 @@
+include COPYING
+include COPYING.LESSER
+include README
+include sphinxformat/_version.py
+include versioneer.py
