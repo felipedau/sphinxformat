@@ -20,6 +20,7 @@
 # packet format by George Danezis".
 
 import os
+from bearandlion import lioness
 from curve25519 import keys
 from SphinxNymserver import Nymserver
 
@@ -132,54 +133,6 @@ class SphinxParams:
             self.i += 1
             return ii
 
-    # The LIONESS PRP
-
-    def lioness_enc(self, key, message):
-        assert len(key) == self.k
-        assert len(message) >= self.k * 2
-        # Round 1
-        r1 = self.xor(self.hash(message[self.k:]+key+'1')[:self.k],
-            message[:self.k]) + message[self.k:]
-
-        # Round 2
-        k2 = self.xor(r1[:self.k], key)
-        c = AES.new(k2, AES.MODE_CTR, counter=self.xcounter(self.k))
-        r2 = r1[:self.k] + c.encrypt(r1[self.k:])
-
-        # Round 3
-        r3 = self.xor(self.hash(r2[self.k:]+key+'3')[:self.k], r2[:self.k]) + r2[self.k:]
-
-        # Round 4
-        k4 = self.xor(r3[:self.k], key)
-        c = AES.new(k4, AES.MODE_CTR, counter=self.xcounter(self.k))
-        r4 = r3[:self.k] + c.encrypt(r3[self.k:])
-
-        return r4
-
-    def lioness_dec(self, key, message):
-        assert len(key) == self.k
-        assert len(message) >= self.k * 2
-
-        r4 = message
-
-        # Round 4
-        k4 = self.xor(r4[:self.k], key)
-        c = AES.new(k4, AES.MODE_CTR, counter=self.xcounter(self.k))
-        r3 = r4[:self.k] + c.encrypt(r4[self.k:])
-
-        # Round 3
-        r2 = self.xor(self.hash(r3[self.k:]+key+'3')[:self.k], r3[:self.k]) + r3[self.k:]
-
-        # Round 2
-        k2 = self.xor(r2[:self.k], key)
-        c = AES.new(k2, AES.MODE_CTR, counter=self.xcounter(self.k))
-        r1 = r2[:self.k] + c.encrypt(r2[self.k:])
-
-        # Round 1
-        r0 = self.xor(self.hash(r1[self.k:]+key+'1')[:self.k], r1[:self.k]) + r1[self.k:]
-
-        return r0
-
     # The PRG; key is of length k, output is of length (2r+3)k
     def rho(self, key):
         assert len(key) == self.k
@@ -196,14 +149,14 @@ class SphinxParams:
         assert len(key) == self.k
         assert len(data) == self.m
 
-        return self.lioness_enc(key, data)
+        return lioness.encrypt(key, data)
 
     # The inverse PRP; key is of length k, data is of length m
     def pii(self, key, data):
         assert len(key) == self.k
         assert len(data) == self.m
 
-        return self.lioness_dec(key, data)
+        return lioness.decrypt(key, data)
 
     # The various hashes
 
