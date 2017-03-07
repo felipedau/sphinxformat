@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2011 Ian Goldberg
 #
 # This file is part of Sphinx.
