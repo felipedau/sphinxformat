@@ -6,7 +6,7 @@ from sphinxformat.SphinxParams import SphinxParams
 
 def test_send_reply():
     r = 5
-    params = SphinxParams(r, ecc=True)
+    params = SphinxParams(r)
 
     # Create some nodes
     for i in xrange(2*r):
